@@ -1,105 +1,90 @@
-const container = document.querySelector("main");
-
-//creating first 5 images
+let image = [];
 for (let i = 0; i < 5; i++) {
-  let img = document.createElement("img");
-  img.classList.add(`img${i + 1}`);
-  img.setAttribute("data-clicked", false);
-  container.appendChild(img);
+  let t = document.createElement("IMG");
+  t.setAttribute("data-ns-test", `img${i + 1}`);
+  t.width = 100;
+  t.height = 100;
+  t.onclick = (e) => captchaClick(e);
+  t.src = `images/${i + 1}.jpg`;
+  image.push(t);
+}
+let temp = Math.floor(Math.random() * 5);
+let t = document.createElement("IMG");
+t.setAttribute("data-ns-test", `img${temp + 1}`);
+t.width = 100;
+t.height = 100;
+t.onclick = (e) => captchaClick(e);
+t.src = `images/${temp + 1}.jpg`;
+image.push(t);
+image.sort(() => Math.random() - 0.5);
+for (let i = 0; i < 6; i++) {
+  document.getElementById("main").appendChild(image[i]);
 }
 
-//creating clone image
-let oneCloneImage = document.createElement("img");
-let imgclass = `img${1 + Math.floor((6 - 1) * Math.random())}`;
-oneCloneImage.classList.add(imgclass);
-oneCloneImage.setAttribute("data-clicked", false);
-
-container.appendChild(oneCloneImage);
-
-//suffling images
-const images = Array.from(document.querySelectorAll("img"));
-
-images.sort(() => Math.random() - 0.5);
-
-images.forEach((img) => {
-  container.appendChild(img);
-});
-
-//appending other stuff
-let h = document.createElement("h3");
-h.id = "h";
-h.innerHTML =
-  "Please click on the identical tiles to verify that you are not a robot.";
-
-let resetBtn = document.createElement("button");
-resetBtn.id = "reset";
-resetBtn.innerHTML = "Reset";
-resetBtn.classList.add("hide");
-
-let verifyBtn = document.createElement("button");
-verifyBtn.innerHTML = "Verify";
-verifyBtn.id = "verify";
-verifyBtn.classList.add("hide");
-
-container.append(h, resetBtn, verifyBtn);
-
-let clickCount = 0;
-let imagesArray = [];
-
-images.forEach((image) => {
-  image.addEventListener("click", (e) => {
-    if (e.target.getAttribute("data-clicked") == "false") {
-      e.target.setAttribute("data-clicked", "true");
-      e.target.classList.add("selected");
-      imagesArray.push(e.target);
-      clickCount++;
-    }
-
-    checkCount();
-  });
-});
-
-function checkCount() {
-  if (clickCount > 2) {
-    verifyBtn.classList.add("hide");
-  } else if (clickCount == 2) {
-    verifyBtn.classList.remove("hide");
-    console.log(2);
-  } else if (clickCount >= 1) {
-    resetBtn.classList.remove("hide");
-	// h.classList.add('hide')
+let captcha = [];
+function clearCaptcha() {
+  // console.log("Clearing captcha");
+  for (let i = 0; i < 6; i++) {
+    image[i].onclick = (e) => captchaClick(e);
   }
+  captcha = [];
+  try {
+    document.getElementById("para").remove();
+  } catch (e) {}
+  try {
+    document.getElementById("btn").remove();
+  } catch (e) {}
+  try {
+    document.getElementById("reset").remove();
+  } catch (e) {}
 }
 
-verifyBtn.addEventListener("click", () => {
-  if (clickCount >= 2) {
-    let p = document.createElement("p");
-    p.id = "para";
+function captchaClick(e) {
+  console.log(e.target.attributes["data-ns-test"].nodeValue);
+  captcha.push(e.target.attributes["data-ns-test"].nodeValue);
+  e.target.onclick = () => {};
+  // console.log(captcha);
 
-    if (imagesArray[0].classList[0] == imagesArray[1].classList[0]) {
-      p.innerText = "You are a human. Congratulations!";
-    } else {
-      p.innerText =
-        "We can't verify you as a human. You selected the non-identical tiles";
-    }
-
-    container.append(p);
+  if (captcha.length === 1) {
+    let p = document.createElement("button");
+    p.id = "reset";
+    p.innerHTML = "Reset";
+    p.onclick = () => {
+      clearCaptcha();
+    };
+    document.getElementById("main").appendChild(p);
   }
 
-  verifyBtn.classList.add("hide");
-});
+  if (captcha.length === 2) {
+    let t = document.createElement("button");
+    t.id = "btn";
+    t.innerHTML = "Verify";
+    t.onclick = () => {
+      captchaVerify();
+    };
+    document.getElementById("main").appendChild(t);
+  } else if (captcha.length > 2) {
+    try {
+      document.getElementById("btn").remove();
+    } catch (e) {}
+  }
+  try {
+    document.getElementById("para").remove();
+  } catch (e) {}
+}
 
-resetBtn.addEventListener("click", () => {
-  verifyBtn.classList.add("hide");
-  resetBtn.classList.add("hide");
-  imagesArray = [];
-  clickCount = 0;
-
-  images.forEach((image) => {
-    image.setAttribute("data-clicked", "false");
-    image.classList.remove("selected");
-  });
-
-	// h.classList.remove('hide');	
-  document.querySelector("#para")?.remove();
-});
+function captchaVerify() {
+  if (captcha.length === 2 && captcha[0] === captcha[1]) {
+    let t = document.createElement("P");
+    t.innerHTML = "You are a human. Congratulations!";
+    t.id = "para";
+    document.getElementById("main").appendChild(t);
+  } else {
+    let t = document.createElement("P");
+    t.innerHTML =
+      "We can't verify you as a human. You selected the non-identical tiles.";
+    t.id = "para";
+    document.getElementById("main").appendChild(t);
+  }
+  document.getElementById("btn").remove();
+}
