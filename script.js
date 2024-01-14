@@ -1,58 +1,96 @@
-//your JS code here. If required.
-const images = document.querySelectorAll('img');
-        const resetButton = document.getElementById('reset');
-        const verifyButton = document.getElementById('verify');
-        const para = document.getElementById('para');
-        let clickedImages = [];
+const main = document.querySelector('main');
+const img = document.getElementsByTagName('img');
+const flex = document.querySelector('.flex');
+const dynamic = document.createElement('div');
+dynamic.style.display = 'flex';
+dynamic.style.flexDirection = 'column';
+dynamic.style.alignItems = 'centre';
+dynamic.style.justifyContent = 'centre';
+main.appendChild(dynamic);
+let div = document.createElement('div');
+	div.style.display = 'flex';
+	
+let count = 0;
 
-        // Shuffle the images on page reload
-        function shuffleImages() {
-            const imageContainer = document.getElementById('image-container');
-            for (let i = images.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [images[i].src, images[j].src] = [images[j].src, images[i].src];
-            }
-            images.forEach((image, index) => {
-                imageContainer.appendChild(image);
-                image.addEventListener('click', handleImageClick);
-            });
-        }
+function addImg(){
+	let index = Math.floor(Math.random()*img.length);
+	let newImg = img[index].cloneNode();
+	flex.append(newImg);
+}
 
-        shuffleImages();
+addImg();
 
-        function handleImageClick(e) {
-            const clickedImage = e.target;
-            if (clickedImages.length === 2) {
-                return; // Already clicked two images
-            }
 
-            clickedImage.classList.add('selected');
-            clickedImages.push(clickedImage);
 
-            if (clickedImages.length === 2) {
-                resetButton.style.display = 'inline';
-                verifyButton.style.display = 'inline';
-            }
 
-            if (clickedImages.length === 2 && areImagesIdentical()) {
-                para.innerText = 'You are a human. Congratulations!';
-            } else if (clickedImages.length === 2) {
-                para.innerText = 'We can\'t verify you as a human. You selected the non-identical tiles.';
-            }
-        }
+flex.addEventListener('click', (event) => {
+	
+	if(event.target.tagName == 'IMG'){
+		// console.log(event.target);
+		event.target.classList.toggle('selected');
+		
+		if(count == 0){
+		let reset = document.createElement('button');
+			reset.id = 'reset';
+		reset.innerText = 'RESET';
+		reset.addEventListener('click', resetAll);
+		div.appendChild(reset);
+		main.appendChild(div);
+		count = 1;
+		}
+		else if(count == 1){
+			let verify = document.createElement('button');
+			verify.id = 'verify';
+			verify.innerText = 'VERIFY';
+			verify.addEventListener('click', verifyImage);
+			div.appendChild(verify);
+			dynamic.appendChild(div);
+			count = 2;
+		}
+		else{
+			event.target.classList.toggle('selected');
+		}
+		
+	}
+})
 
-        function areImagesIdentical() {
-            return clickedImages[0].src === clickedImages[1].src;
-        }
+function resetAll(){
+		dynamic.innerHTML = '';
+		div.innerHTML = '';
+		for(let i = 0; i < img.length; i++){
+			let elem = img[i].classList;
+			elem.forEach((e) => {
+				if(e == 'selected'){
+					img[i].classList.toggle('selected');
+				}
+			})
+		}
+		 count = 0;
+}
 
-        resetButton.addEventListener('click', () => {
-            clickedImages.forEach((image) => image.classList.remove('selected'));
-            clickedImages = [];
-            resetButton.style.display = 'none';
-            verifyButton.style.display = 'none';
-            para.innerText = '';
-        });
-
-        verifyButton.addEventListener('click', () => {
-            verifyButton.style.display = 'none';
-        });
+function verifyImage(event){
+	let btn = event.target;
+	let selected = document.querySelectorAll('.selected');
+	let arr = [];
+	for(let i = 0; i < selected.length; i++){
+		if(selected[i].classList[1] == 'selected'){
+			arr.push(selected[i]);
+		}
+	}
+	if(arr[0].classList[0] == arr[1].classList[0]){
+		btn.remove();
+		let p = document.createElement('p');
+		p.id = 'para';
+		p.textContent = "You are a human. Congratulations!.";
+		p.style.textAlign = 'centre';
+		dynamic.appendChild(p);
+	}
+	else{
+		btn.remove();
+		let p = document.createElement('p');
+		p.id = 'para';
+		p.textContent = "We can't verify you as a human. You selected the non-identical tiles.";
+		p.style.textAlign = 'centre';
+		dynamic.appendChild(p);
+	}
+}
