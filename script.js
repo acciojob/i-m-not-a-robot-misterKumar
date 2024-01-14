@@ -1,96 +1,105 @@
-const main = document.querySelector('main');
-const img = document.getElementsByTagName('img');
-const flex = document.querySelector('.flex');
-const dynamic = document.createElement('div');
-dynamic.style.display = 'flex';
-dynamic.style.flexDirection = 'column';
-dynamic.style.alignItems = 'centre';
-dynamic.style.justifyContent = 'centre';
-main.appendChild(dynamic);
-let div = document.createElement('div');
-	div.style.display = 'flex';
-	
-let count = 0;
+const container = document.querySelector("main");
 
-function addImg(){
-	let index = Math.floor(Math.random()*img.length);
-	let newImg = img[index].cloneNode();
-	flex.append(newImg);
+//creating first 5 images
+for (let i = 0; i < 5; i++) {
+  let img = document.createElement("img");
+  img.classList.add(`img${i + 1}`);
+  img.setAttribute("data-clicked", false);
+  container.appendChild(img);
 }
 
-addImg();
+//creating clone image
+let oneCloneImage = document.createElement("img");
+let imgclass = `img${1 + Math.floor((6 - 1) * Math.random())}`;
+oneCloneImage.classList.add(imgclass);
+oneCloneImage.setAttribute("data-clicked", false);
 
+container.appendChild(oneCloneImage);
 
+//suffling images
+const images = Array.from(document.querySelectorAll("img"));
 
+images.sort(() => Math.random() - 0.5);
 
-flex.addEventListener('click', (event) => {
-	
-	if(event.target.tagName == 'IMG'){
-		// console.log(event.target);
-		event.target.classList.toggle('selected');
-		
-		if(count == 0){
-		let reset = document.createElement('button');
-			reset.id = 'reset';
-		reset.innerText = 'RESET';
-		reset.addEventListener('click', resetAll);
-		div.appendChild(reset);
-		main.appendChild(div);
-		count = 1;
-		}
-		else if(count == 1){
-			let verify = document.createElement('button');
-			verify.id = 'verify';
-			verify.innerText = 'VERIFY';
-			verify.addEventListener('click', verifyImage);
-			div.appendChild(verify);
-			dynamic.appendChild(div);
-			count = 2;
-		}
-		else{
-			event.target.classList.toggle('selected');
-		}
-		
-	}
-})
+images.forEach((img) => {
+  container.appendChild(img);
+});
 
-function resetAll(){
-		dynamic.innerHTML = '';
-		div.innerHTML = '';
-		for(let i = 0; i < img.length; i++){
-			let elem = img[i].classList;
-			elem.forEach((e) => {
-				if(e == 'selected'){
-					img[i].classList.toggle('selected');
-				}
-			})
-		}
-		 count = 0;
+//appending other stuff
+let h = document.createElement("h3");
+h.id = "h";
+h.innerHTML =
+  "Please click on the identical tiles to verify that you are not a robot.";
+
+let resetBtn = document.createElement("button");
+resetBtn.id = "reset";
+resetBtn.innerHTML = "Reset";
+resetBtn.classList.add("hide");
+
+let verifyBtn = document.createElement("button");
+verifyBtn.innerHTML = "Verify";
+verifyBtn.id = "verify";
+verifyBtn.classList.add("hide");
+
+container.append(h, resetBtn, verifyBtn);
+
+let clickCount = 0;
+let imagesArray = [];
+
+images.forEach((image) => {
+  image.addEventListener("click", (e) => {
+    if (e.target.getAttribute("data-clicked") == "false") {
+      e.target.setAttribute("data-clicked", "true");
+      e.target.classList.add("selected");
+      imagesArray.push(e.target);
+      clickCount++;
+    }
+
+    checkCount();
+  });
+});
+
+function checkCount() {
+  if (clickCount > 2) {
+    verifyBtn.classList.add("hide");
+  } else if (clickCount == 2) {
+    verifyBtn.classList.remove("hide");
+    console.log(2);
+  } else if (clickCount >= 1) {
+    resetBtn.classList.remove("hide");
+	// h.classList.add('hide')
+  }
 }
 
-function verifyImage(event){
-	let btn = event.target;
-	let selected = document.querySelectorAll('.selected');
-	let arr = [];
-	for(let i = 0; i < selected.length; i++){
-		if(selected[i].classList[1] == 'selected'){
-			arr.push(selected[i]);
-		}
-	}
-	if(arr[0].classList[0] == arr[1].classList[0]){
-		btn.remove();
-		let p = document.createElement('p');
-		p.id = 'para';
-		p.textContent = "You are a human. Congratulations!.";
-		p.style.textAlign = 'centre';
-		dynamic.appendChild(p);
-	}
-	else{
-		btn.remove();
-		let p = document.createElement('p');
-		p.id = 'para';
-		p.textContent = "We can't verify you as a human. You selected the non-identical tiles.";
-		p.style.textAlign = 'centre';
-		dynamic.appendChild(p);
-	}
-}
+verifyBtn.addEventListener("click", () => {
+  if (clickCount >= 2) {
+    let p = document.createElement("p");
+    p.id = "para";
+
+    if (imagesArray[0].classList[0] == imagesArray[1].classList[0]) {
+      p.innerText = "You are a human. Congratulations!";
+    } else {
+      p.innerText =
+        "We can't verify you as a human. You selected the non-identical tiles";
+    }
+
+    container.append(p);
+  }
+
+  verifyBtn.classList.add("hide");
+});
+
+resetBtn.addEventListener("click", () => {
+  verifyBtn.classList.add("hide");
+  resetBtn.classList.add("hide");
+  imagesArray = [];
+  clickCount = 0;
+
+  images.forEach((image) => {
+    image.setAttribute("data-clicked", "false");
+    image.classList.remove("selected");
+  });
+
+	// h.classList.remove('hide');	
+  document.querySelector("#para")?.remove();
+});
